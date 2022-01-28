@@ -1,0 +1,163 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MAXN = 1e5;
+const int r = 4;
+
+void solve(int c);
+void formatOut(int);
+bool nextComb();
+
+vector<int> sVal;
+vector<int> comb;
+vector<int> alloc;
+vector<int> mem;
+int combNum;
+int maxDiffType; //种类
+int maxStampNum; //数
+bool tieSign = false;
+
+
+int main() {
+    int x;
+    while(cin >> x) {
+        sVal.clear();
+        combNum = 4;
+        while(x != 0) {
+            sVal.push_back(x);
+            sVal.push_back(x);
+            sVal.push_back(x);
+            sVal.push_back(x);
+            combNum += 4;
+            cin >> x;
+        }
+        sVal.push_back(0);
+        sVal.push_back(0);
+        sVal.push_back(0);
+        sVal.push_back(0);
+
+        while(cin >> x) {
+            if(x == 0) {
+                break;
+            }
+            alloc.clear();
+            mem.clear();
+            maxDiffType = 0; maxStampNum = MAXN;
+            tieSign = false;
+            comb.clear();
+            comb.push_back(1);
+            comb.push_back(2);
+            comb.push_back(3);
+            comb.push_back(4);
+        
+            solve(x);
+            formatOut(x);
+
+        }
+    }
+    return 0;
+}
+//1. 邮票种类最多
+//2. 邮票数最少
+//3. 最大邮票面值最大
+void solve(int c) {
+    do {
+        int temp = 0;
+        int nonZero = 0;
+        int diffType = 0;
+        map<int, bool> selected;
+        for(auto index:comb) {
+            temp += sVal[index - 1];
+            if(sVal[index - 1]) {
+                nonZero++;
+                if(selected[(index-1)/4] == false) {
+                    diffType++;
+                    selected[(index-1)/4] = true;
+                }
+            }
+        }
+        if(temp == c) {
+            if(diffType > maxDiffType || (diffType == maxDiffType && nonZero < maxStampNum)) {
+                alloc.clear();
+                mem.clear();
+                for(auto index:comb) {
+                    alloc.push_back(sVal[index - 1]);
+                    mem.push_back((index-1)/4);
+                }
+                sort(mem.begin(), mem.end());
+                maxDiffType = diffType;
+                maxStampNum = nonZero;
+                tieSign = false;
+            }else if(diffType == maxDiffType && nonZero == maxStampNum) {
+                int m = -1, n = -1;
+                for(auto index:comb) {
+                    m = max(m, sVal[index-1]);
+                }
+                for(auto val:alloc) {
+                    n = max(n, val);
+                }
+                if(n < m) {
+                    alloc.clear();
+                    mem.clear();
+                    for(auto index:comb) {
+                        alloc.push_back(sVal[index - 1]);
+                        mem.push_back((index-1)/4);
+                    }
+                    maxDiffType = diffType;
+                    maxStampNum = nonZero;
+                    tieSign = false;
+                }else if(n == m) {
+                    bool same = true;
+                    for(int i = 0; i < comb.size(); i++) {
+                        if((comb[i]-1)/4 != mem[i]) {
+                            same = false;
+                            break;
+                        }
+                    }
+                    if(!same) {
+                        tieSign = true;
+                    }
+                }
+            }
+        }
+    }while(nextComb());
+}
+
+void formatOut(int x) {
+    if(tieSign) {
+        printf("%d (%d): tie", x, maxDiffType);
+    }else {
+        if(alloc.size() == 0) {
+            printf("%d ---- none", x);
+        }else {
+            printf("%d (%d): ", x, maxDiffType);
+            for(int i = 0; i < alloc.size(); i++) {
+                if(alloc[i]) {
+                    cout << alloc[i];
+                    if(i != alloc.size() - 1) {
+                        cout << " ";
+                    } 
+                }
+            }
+        }
+    }
+    cout << endl;
+}
+
+bool nextComb() {
+    int i = -1;
+    for(int j = 3; j >= 0; j--) {
+        if(comb[j] < combNum - r + j + 1) {
+            i = j;
+            break;
+        }
+    }
+    if(i == -1) {
+        return false;
+    }
+    comb[i]++;
+    for(int j = i+1; j < 4; j++) {
+        comb[j] = comb[j-1] + 1;
+    }
+    return true;
+}
