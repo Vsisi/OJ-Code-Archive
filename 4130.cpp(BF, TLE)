@@ -1,0 +1,127 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef pair<int, int> pii;
+int dp[110][110][15];
+char maze[110][110];
+const int INF = 0x3fffffff;
+int n, m;
+struct State{
+    State() {}
+    State(int x, int y, int dis, char nextTgt):x(x), y(y), dis(dis), nextTgt(nextTgt) {
+        clearWent();
+        snakeKilled.clear();
+    }
+    void clearWent() {
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n; j++) {
+                this->went[i][j] = false;
+            }
+        }
+    }
+    int x, y;
+    int dis;
+    char nextTgt;
+    bool went[110][110];
+    map<pii, bool> snakeKilled;
+};
+bool legalPos(const State& now) {
+    int x = now.x, y = now.y;
+    return x >= 0 && x < n && y >= 0 && y < n && maze[x][y] != '#' && !now.went[x][y];
+}
+void solve(int orgX, int orgY, char m) {
+    queue<State> q;
+    q.push(State(orgX, orgY, -1, m != '0' ? '1' : 'T'));
+    State now;
+    int minDis = INF;
+    while(!q.empty()) {
+        now = q.front();
+        q.pop();
+        if(now.dis >= min((m+1) * n*n, minDis)) {
+            continue;
+        }
+
+        now.dis++;
+        if(maze[now.x][now.y] == 'S' && !now.snakeKilled[pii(now.x, now.y)]) {
+            now.dis++;
+            now.snakeKilled[pii(now.x, now.y)] = true;
+        }
+        now.went[now.x][now.y] = true;
+        // cout << now.x << " " << now.y << " " << now.dis << " " << now.nextTgt << endl;
+        // system("pause");
+
+        if(dp[now.x][now.y][isdigit(now.nextTgt) ? now.nextTgt - '0' : 10] > now.dis) {
+            dp[now.x][now.y][isdigit(now.nextTgt) ? now.nextTgt - '0' : 10] = now.dis;
+        }else {
+            continue;
+        }
+
+
+        if(maze[now.x][now.y] == now.nextTgt) {
+            now.clearWent();
+            if(now.nextTgt < m) {
+                now.nextTgt++;
+            }else if(now.nextTgt == m) {
+                now.nextTgt = 'T';
+            }else if(now.nextTgt == 'T') {
+                minDis = min(minDis, now.dis);
+                continue;
+            }
+        }
+
+
+        now.y--;; //up
+        if(legalPos(now)) {
+            q.push(now);
+        }
+        now.y++;
+        now.y++; //down
+        if(legalPos(now)) {
+            q.push(now);
+        }
+        now.y--;
+        now.x--; //left
+        if(legalPos(now)) {
+            q.push(now);
+        }
+        now.x++;
+        now.x++;; //right
+        if(legalPos(now)) {
+            q.push(now);
+        }
+        now.x--;
+    }
+    if(minDis != INF) {
+        cout << minDis << endl;
+    }else {
+        cout << "impossible" << endl;
+    }
+}
+int main() {
+    int orgX, orgY;
+    char temp[110];
+    while(1) {
+        scanf("%d%d", &n, &m);
+        if(n == 0 && m == 0) {
+            break;
+        }
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n; j++) {
+                for(int k = 0; k <= 10; k++) {
+                    dp[i][j][k] = INF;
+                }
+            }
+        }
+        for(int i = 0; i < n; i++) {
+            scanf("%s", temp);
+            for(int j = 0; j < n; j++) {
+                if(temp[j] == 'K') {
+                    orgX = i;
+                    orgY = j;
+                }
+                maze[i][j] = temp[j];
+            }
+        }
+        solve(orgX, orgY, m + '0');
+    }
+    return 0;
+}
