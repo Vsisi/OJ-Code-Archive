@@ -1,0 +1,52 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int INF = 0x3fffffff;
+typedef long long ll;
+int n;
+int dis[20][20];
+map<map<int, bool>, ll> dp[20][20];
+void solve() {
+    map<int, bool> temp;
+    for(int i = 1; i < n; i++) {
+        for(int j = 1; j <= n; j++) {
+            temp[j] = false;
+        }
+        temp[i] = true;
+        dp[i][1][temp] = dis[i][n];
+    }
+    for(int size = 2; size < n; size++) {
+        for(int i = 1; i < n; i++) {
+            for(map<map<int, bool>, ll>::iterator it = dp[i][size-1].begin(); it != dp[i][size-1].end(); it++) {
+                map<int, bool> tempM = it->first;
+                for(int j = 1; j < n; j++) {
+                    if(!tempM[j]) {
+                        tempM[j] = true;
+                        if(!dp[j][size][tempM]) {
+                            dp[j][size][tempM] = it->second + dis[j][i];
+                        }else {
+                            dp[j][size][tempM] = min(dp[j][size][tempM], it->second + dis[j][i]);
+                        }
+                        tempM[j] = false;
+                    }
+                }
+            }
+        }
+    }
+    temp.clear();
+    for(int i = 1; i < n; i++) {
+        temp[i] = true;
+    }
+    temp[n] = false;
+    cout << dp[1][n-1][temp];
+    return;
+}
+int main() {
+    cin >> n;
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j <= n; j++) {
+            cin >> dis[i][j];
+        }
+    }
+    solve();
+    return 0;
+}
