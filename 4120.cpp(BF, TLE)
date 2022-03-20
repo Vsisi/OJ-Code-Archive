@@ -1,0 +1,58 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int N = 205;
+unordered_set<bitset<N>> dp[10010];
+int main() {
+    int n, x;
+    cin >> n >> x;
+    vector<int> coin;
+    int temp;
+    for(int i = 0; i < n; i++) {
+        cin >> temp;
+        coin.push_back(temp);
+    }
+    dp[coin[0]].insert(bitset<N>(1));
+    bitset<N> tmp;
+    for(int i = coin[1]; i <= x; i++) {
+        for(int j = 0; j < n && i-coin[j] >= 0; j++) {
+            if(i == coin[j]) {
+                tmp = bitset<N>(0);
+                tmp.set(j);
+                dp[i].insert(tmp);
+            }
+            for(unordered_set<bitset<N>>::iterator it = dp[i-coin[j]].begin(); it != dp[i-coin[j]].end(); it++) {
+                if(it->test(j) == false) {
+                    // cout << i << " " << j << " " << coin[j] << endl;
+                    // cout << *it << endl;
+                    // system("pause");
+                    tmp = *it;
+                    tmp.set(j);
+                    dp[i].insert(tmp);
+                }
+            }
+        }
+    }
+    // for(unordered_set<bitset<N>>::iterator it = dp[x].begin(); it != dp[x].end(); it++) { cout << *it << endl;}
+
+    int cnt = 0;
+    bool required = true;
+    vector<int> res;
+    for(int i = 0; i < n; i++) {
+        required = true;
+        for(unordered_set<bitset<N>>::iterator it = dp[x].begin(); it != dp[x].end(); it++) {
+            if(!it->test(i)) {
+                required = false;
+                break;
+            }
+        }
+        if(required) {
+            cnt++;
+            res.push_back(coin[i]);
+        }
+    }
+    cout << cnt << endl;
+    for(auto val:res) {
+        cout << val << " ";
+    }
+    return 0;
+}
