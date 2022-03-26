@@ -1,0 +1,88 @@
+#include<bits/stdc++.h>
+using namespace std;
+struct Train{
+    Train(double t, double v):t(t), v(v) {}
+    bool operator<(const Train& other) const {
+        return this->t < other.t;
+    }
+    double t, v;
+};
+struct Position{
+    Position(double x, double v):x(x), v(v) {}
+    double x, v;
+};
+int main() {
+    int n;
+    double s;
+    cin >> n >> s;
+    double t, v;
+    vector<Train> trains;
+    for(int i = 0; i < n; i++) {
+        cin >> t >> v;
+        trains.push_back(Train(t, v));
+    }
+    sort(trains.begin(), trains.end());
+    if(n == 1) {
+        cout << int(trains[0].t + s / trains[0].v);
+        return 0;
+    }
+    list<Position> diffPos;
+    diffPos.push_back(Position(0, trains[0].v));
+    double lastT = trains[0].t;
+    double dTime;
+    double res;
+    for(int i = 1; i < n; i++) {
+        dTime = trains[i].t - lastT;
+        for(list<Position>::iterator it = diffPos.end(); ;) {
+            if(it == diffPos.end()) {
+                it--;
+                if(it == diffPos.begin()) {
+                    it->x += dTime * it->v;
+                    break;
+                }
+                it--;
+                continue;
+            } //start from pos n-1
+            it->x += dTime * it->v;
+            list<Position>::iterator temp = it, next = ++it;
+            if(it->x >= s) { //reached destination
+                next = temp; //reuse variable
+                it = --next;
+                diffPos.erase(temp); //remove this node
+                continue;
+            }
+            if(temp->x > next->x || temp->v <= next->v) {//surpasses or unable to catch up
+                temp->x = next->x;
+                temp->v = next->v;
+                diffPos.erase(next);
+            }
+            it = --temp;
+            if(it == diffPos.begin()) {break;}
+        }
+        // cout << trains[i].t << " " << trains[i].v << endl;
+        // for(auto pos:diffPos) {
+        //     cout << pos.x << " " << pos.v << endl;
+        // }
+        // system("pause");
+        if(i < n-1) {
+            diffPos.push_front(Position(0, trains[i].v));
+            lastT = trains[i].t;
+        }else { //i==n-1, last train departured
+            if(trains[i].v <= diffPos.front().v) {
+                res = s * 1.0 / trains[i].v + trains[i].t;
+                break;
+            }
+            double time2Dest = (s - diffPos.front().x) * 1.0 / diffPos.front().v;
+            double time2CatchUp = diffPos.front().x * 1.0 / (trains[i].v - diffPos.front().v);
+            if(time2Dest < time2CatchUp) {//full speed
+                res = s * 1.0 / trains[i].v;
+            }else {
+                res = time2CatchUp + (s - (diffPos.front().x + time2CatchUp * diffPos.front().v)) * 1.0 / diffPos.front().v;
+            }
+            res += trains[i].t;
+            break;
+        }
+    }
+    cout << int(res);
+    return 0;
+}
