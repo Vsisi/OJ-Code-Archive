@@ -17,37 +17,27 @@ struct Segment{
         }
     }
     bool hasIntersection(const Segment& other) {
-        if(this->infK || other.infK) {
-            if(this->infK) {
-                ld minX = min(other.x1, other.x2);
-                ld maxX = max(other.x1, other.x2);
-                if(fabs(minX - this->x1) < eps || fabs(maxX - this->x1) < eps) {
-                    return true;
-                }else if(minX < this->x1 && this->x1 < maxX) {
-                    return true;
-                }
-                return false;
-            }else {
-                ld intersectY = this->k * other.x1 + this->b;
-                ld minY = min(other.y1, other.y2);
-                ld maxY = max(other.y1, other.y2);
-                if(fabs(minY - intersectY) < eps || fabs(maxY - intersectY) < eps) {
-                    return true;
-                }else if(minY < intersectY && intersectY < maxY) {
-                    return true;
-                }
-                return false;
+        if(this->infK) {
+            ld minX = min(other.x1, other.x2);
+            ld maxX = max(other.x1, other.x2);
+            if(fabs(minX - this->x1) < eps || fabs(maxX - this->x1) < eps) {
+                return true;
+            }else if(minX < this->x1 && this->x1 < maxX) {
+                return true;
+            }
+            return false;
+        }
+        if(!other.infK) {
+            if(fabs(this->k - other.k) < eps) {
+                return fabs(this->b - other.b) < eps;
             }
         }
-        if(fabs(this->k - other.k) < eps) {
-            return fabs(this->b - other.b) < eps;
-        }
-        ld intersectX = (other.b - this->b) / (this->k - other.k);
         ld t;
-        if(fabs(other.x2 - other.x1) > eps) {
+        if(!other.infK) {
+            ld intersectX = (other.b - this->b) / (this->k - other.k);
             t = (intersectX - other.x1) / (other.x2 - other.x1);
         }else {
-            t = (this->k * intersectX + this->b - other.y1) / (other.y2 - other.y1);
+            t = (this->k * other.x1 + this->b - other.y1) / (other.y2 - other.y1);
         }
         if(fabs(t - 0) < eps || fabs(t - 1) < eps) {
             return true;
@@ -97,6 +87,6 @@ int main() {
     return 0;
 }   
 ostream& operator<<(ostream& out, const Segment& seg) {
-    out << seg.x1 << " " << seg.y1 << " " << seg.x2 << " " << seg.y2 << endl;
+    out << seg.x1 << " " << seg.y1 << " " << seg.x2 << " " << seg.y2 << " " << seg.infK <<  endl;
     return out;
 }
