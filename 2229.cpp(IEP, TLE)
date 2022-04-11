@@ -1,0 +1,85 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const long long MOD = 1e9;
+const int MAXN = 5e6;
+ll dp[MAXN];
+int power(int x, int k) {
+    int res = 1;
+    for(int i = 0; i < k; i++) {
+        res *= x;
+    }
+    return res;
+}
+vector<int> desolve(int x) {
+    vector<int> res;
+    int k = 0;
+    while(power(2, k) < x) {
+        res.push_back(power(2, k));
+        k++;
+    }
+    return res;
+}
+int partCalc(int n, int r, const vector<int>& power2, const int x) {
+    vector<int> comb;
+    int sign = power(-1, r+1);
+    int sum = 0;
+    for(int i = 1; i <= r; i++) {
+        comb.push_back(i);
+    }
+    bool shouldEnd = true;
+    int res = 0;
+    do{
+        // for(auto idx:comb) {
+        //     cout << idx << " ";
+        // }
+        shouldEnd = true;
+        sum = 0;
+        for(auto idx:comb) {
+            sum += power2[idx-1];
+        }
+        if(x - sum >= 0) {
+            res =  (res + dp[x-sum]) % MOD;
+        }
+        int j;
+        for(int i = r-1; i >= 0; i--) {
+            if(comb[i] < n - r + i+1) {
+                shouldEnd = false;
+                j = i;
+                break;
+            }
+        }
+        if(!shouldEnd) {
+            comb[j]++;
+            for(int i = j+1; i < r; i++) {
+                comb[i]=comb[i-1] + 1;
+            }
+        }
+    }while(!shouldEnd);
+    return res * sign;
+}
+void calc(int n) {
+    for(int i = 3; i <= n; i++) {
+        vector<int> v2 = desolve(i);
+        bool powerof2 = (v2.back() * 2 == i);
+        dp[i] = 0;
+        for(int j = 1; j <= v2.size(); j++) {
+            // cout << partCalc(v2.size(), j, v2, i) << endl;
+            dp[i] = (dp[i] + partCalc(v2.size(), j, v2, i)) % MOD;
+        }
+        if(powerof2) {
+            dp[i] = (dp[i] + 1) % MOD;
+        }
+        // cout << i << " " << dp[i] << endl;
+    }
+}
+int main() {
+    int n;
+    cin >> n;
+    dp[0] = 1;
+    dp[1] = 1;
+    dp[2] = 2;
+    calc(n);
+    cout << dp[n] << endl;
+    return 0;
+}
